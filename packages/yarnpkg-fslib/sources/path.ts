@@ -36,9 +36,9 @@ ppath.cwd = () => toPortablePath(process.cwd());
 
 ppath.resolve = (...segments: Array<PortablePath | Filename>) => {
   if (segments.length > 0 && ppath.isAbsolute(segments[0])) {
-    return path.posix.resolve(...segments) as PortablePath;
+    return toPortablePath(path.posix.resolve(...segments));
   } else {
-    return path.posix.resolve(ppath.cwd(), ...segments) as PortablePath;
+    return toPortablePath(path.posix.resolve(ppath.cwd(), ...segments));
   }
 };
 
@@ -109,7 +109,10 @@ export interface ConvertUtils {
 
 const WINDOWS_PATH_REGEXP = /^([a-zA-Z]:.*)$/;
 const UNC_WINDOWS_PATH_REGEXP = /^\\\\(\.\\)?(.*)$/;
+const DRIVE_ROOT_PATH_REGEXP = /^([a-zA-Z]:)\\$/;
+const DRIVE_RELATIVE_DIR_REGEXP = /^([a-zA-Z]:)([^/\\]*)$/;
 
+const DRIVE_ROOT_PORTABLE_PATH_REGEXP = /^\/([a-zA-Z]:)$/;
 const PORTABLE_PATH_REGEXP = /^\/([a-zA-Z]:.*)$/;
 const UNC_PORTABLE_PATH_REGEXP = /^\/unc\/(\.dot\/)?(.*)$/;
 
@@ -119,7 +122,9 @@ function fromPortablePath(p: Path): NativePath {
   if (process.platform !== `win32`)
     return p as NativePath;
 
-  if (p.match(PORTABLE_PATH_REGEXP))
+  if (p.match(DRIVE_ROOT_PORTABLE_PATH_REGEXP))
+    p = p.replace(DRIVE_ROOT_PORTABLE_PATH_REGEXP, `$1/`);
+  else if (p.match(PORTABLE_PATH_REGEXP))
     p = p.replace(PORTABLE_PATH_REGEXP, `$1`);
   else if (p.match(UNC_PORTABLE_PATH_REGEXP))
     p = p.replace(UNC_PORTABLE_PATH_REGEXP, (match, p1, p2) => `\\\\${p1 ? `.\\` : ``}${p2}`);
@@ -135,7 +140,11 @@ function toPortablePath(p: Path): PortablePath {
   if (process.platform !== `win32`)
     return p as PortablePath;
 
-  if (p.match(WINDOWS_PATH_REGEXP))
+  if (p.match(DRIVE_RELATIVE_DIR_REGEXP))
+    throw new Error(`Relative Path ($2) to Drive ($1)'s working directory is not supported`);
+  if (p.match(DRIVE_ROOT_PATH_REGEXP))
+    p = p.replace(DRIVE_ROOT_PATH_REGEXP, `/$1`);
+  else if (p.match(WINDOWS_PATH_REGEXP))
     p = p.replace(WINDOWS_PATH_REGEXP, `/$1`);
   else if (p.match(UNC_WINDOWS_PATH_REGEXP))
     p = p.replace(UNC_WINDOWS_PATH_REGEXP, (match, p1, p2) => `/unc/${p1 ? `.dot/` : ``}${p2}`);
