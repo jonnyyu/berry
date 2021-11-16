@@ -113,7 +113,7 @@ export function makeManager(pnpapi: PnpApi, opts: MakeManagerOptions) {
       if (controlledBy.length === 1)
         return controlledBy[0];
 
-      throw new Error(
+      console.error(
         `Unable to locate pnpapi, the module '${modulePath}' is controlled by multiple pnpapi instances.\nThis is usually caused by using the global cache (enableGlobalCache: true)\n\nControlled by:\n${controlledBy
           .map(pnpPath => `  ${npath.fromPortablePath(pnpPath)}`)
           .join(`\n`)}`
