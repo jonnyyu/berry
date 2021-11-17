@@ -70,11 +70,17 @@ describe(`Portable paths`, () => {
             expect(npath.toPortablePath(inputPath)).toEqual(outputPath);
           });
 
-          it(`should support drive: Windows paths`, () => {
-            const inputPath = `C:`;
+          it(`should support drive:\\ Windows root paths`, () => {
+            const inputPath = `C:\\`;
             const outputPath = `/C:`;
             expect(npath.toPortablePath(inputPath)).toEqual(outputPath);
           });
+
+          // it(`should support drive: Windows paths`, () => {
+          //   const inputPath = `C:`;
+          //   const outputPath = `/C:`;
+          //   expect(npath.toPortablePath(inputPath)).toEqual(outputPath);
+          // });
 
           it(`should support UNC Windows paths (\\\\[server]\\[sharename]\\)`, () => {
             const inputPath = `\\\\Server01\\user\\docs\\Letter.txt`;
@@ -154,7 +160,7 @@ describe(`Portable paths`, () => {
 
           it(`should transform back drive: on Windows platforms`, () => {
             const inputPath = `/C:`;
-            const outputPath = `C:`;
+            const outputPath = `C:\\`;
             expect(npath.fromPortablePath(inputPath)).toEqual(outputPath);
           });
 
